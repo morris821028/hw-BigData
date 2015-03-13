@@ -43,7 +43,19 @@ $ javac -classpath /opt/hadoop/lib/commons-cli-1.2.jar:/opt/hadoop/lib/hadoop-co
 接著包成 jar 檔案。
 
 ```
-$ jar -cvf WordCount.jar -C class ./
+$ jar -cvf PageRank.jar -C class ./
 ```
 
 取
+
+```
+source /opt/hadoop/conf/hadoop-env.sh
+```
+
+```
+$ javac -classpath /opt/hadoop/lib/commons-cli-1.2.jar:/opt/hadoop/lib/hadoop-core-0.20.2+320.jar  -d class PageRank.java -Xlint
+```
+
+```
+$ hadoop jar PageRank.jar main.PageRank input output
+```
