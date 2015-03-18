@@ -118,13 +118,12 @@ public class PageRankTest {
 		BlockRecordReader reader = getBlockRecordReader();
 		int counter = 0;
 		while (reader.nextKeyValue()) {
-			reader.getCurrentKey();
-			reader.getCurrentValue();
-			System.out.printf("key %s\nvalue %s\n", reader.getCurrentKey(),
-					reader.getCurrentValue());
+			// System.out.printf("key %s\nvalue %s\n", reader.getCurrentKey(),
+			// reader.getCurrentValue());
 			counter++;
 		}
-		System.out.printf("WTF %d\n", counter);
+
+		assertEquals(6, counter);
 	}
 
 	private static BlockRecordReader getBlockRecordReader() throws IOException,
@@ -135,9 +134,8 @@ public class PageRankTest {
 		String testFilePath = "testinput/testHtml(small).txt";
 
 		File testFile = new File(testFilePath);
-		System.out.println(testFile.toURI().toString());
 		Path path = new Path(testFile.toURI().toString());
-		System.out.println(testFile.length());
+
 		FileSplit split = new FileSplit(path, 0, testFile.length() / 100, null);
 
 		BlockInputFormat inputFormat = ReflectionUtils.newInstance(

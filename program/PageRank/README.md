@@ -68,3 +68,5 @@ Y 0.22
 * [Hadoop : WordCount with Custom Record Reader of TextInputFormat](http://bigdatacircus.com/2012/08/01/wordcount-with-custom-record-reader-of-textinputformat/)
 
 * [Hadoop: RecordReader and FileInputFormat](https://hadoopi.wordpress.com/2013/05/27/understand-recordreader-inputsplit/)
+
+* [MRunit 测试](http://yugouai.iteye.com/blog/2161631)
