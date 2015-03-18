@@ -37,11 +37,9 @@ public class PageRankTest {
 		mapper = new PageRank.PageRankMapper();
 		mapDriver = new MapDriver<Object, Text, Text, Text>()
 				.withMapper(mapper);
-
 		reducer = new PageRank.PageRankReducer();
 		reduceDriver = new ReduceDriver<Text, Text, Text, Text>()
 				.withReducer(reducer);
-		context = mock(Context.class);
 	}
 
 	@After
@@ -50,23 +48,25 @@ public class PageRankTest {
 
 	@Test
 	public void testMapper() throws IOException, InterruptedException {
-		mapDriver.withInput(new LongWritable(1L), new Text("A 1 B C D"));
-		mapDriver.withOutput(new Text("A"), new Text("B"));
-		mapDriver.withOutput(new Text("B"), new Text("0.3333333333333333"));
-		mapDriver.withOutput(new Text("A"), new Text("C"));
-		mapDriver.withOutput(new Text("C"), new Text("0.3333333333333333"));
-		mapDriver.withOutput(new Text("A"), new Text("D"));
-		mapDriver.withOutput(new Text("D"), new Text("0.3333333333333333"));
-		mapDriver.runTest();
+		mapDriver.withInput(new LongWritable(1L), new Text("A 1 B C D"))
+				.withOutput(new Text("A"), new Text("B"))
+				.withOutput(new Text("B"), new Text("0.3333333333333333"))
+				.withOutput(new Text("A"), new Text("C"))
+				.withOutput(new Text("C"), new Text("0.3333333333333333"))
+				.withOutput(new Text("A"), new Text("D"))
+				.withOutput(new Text("D"), new Text("0.3333333333333333"))
+				.runTest();
 	}
 
 	@Test
 	public void testReducer() throws IOException, InterruptedException {
+
 		List<Text> values = new ArrayList<Text>();
 		values.add(new Text("A"));
-		values.add(new Text("0.3333333333333333"));
-		reduceDriver.withInput(new Text("B"), values);
-		reduceDriver.withOutput(new Text("B"), new Text("0.43333333333333324 A"));
-		reduceDriver.runTest();
+		values.add(new Text("1"));
+		values.add(new Text("C"));
+		values.add(new Text("4")); // 5 * 0.85 + 0.15 = 4.4
+		reduceDriver.withInput(new Text("B"), values)
+				.withOutput(new Text("B"), new Text("4.4 A C")).runTest();
 	}
 }

@@ -24,8 +24,7 @@ public class PageRank {
 	}
 
 	/**
-	 * Mapper<Input Key, Input Value, Output Key, Output Value> read like ``` A
-	 * 0.7 B C B 0.5 A D ```
+	 * Mapper<Input Key, Input Value, Output Key, Output Value> 
 	 * 
 	 * @author morris
 	 * 
@@ -96,7 +95,7 @@ public class PageRank {
 					double contri = Double.valueOf(val.toString());
 					p += contri;
 				} catch (Exception e) {
-					sb.append(val.toString() + " ");
+					sb = sb.append(val.toString() + " ");
 				}
 			}
 
