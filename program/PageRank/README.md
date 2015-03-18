@@ -53,7 +53,7 @@ Y 0.22
 
 由於假設總和是 N (所有網站個數)，得到迭代 `r = beta M r + (1 - beta)`，計算時與 N 無關。
 
-# Other Format Process # 
+## Other Format Process ##
 
 [Hadoop MapReduce中如何处理跨行 Block 和 UnputSplit](http://olylakers.iteye.com/blog/1070068)
 
@@ -62,3 +62,9 @@ Y 0.22
 從 source code 可以發現，這是有可能的，但這不影響程式的運行，由於 `readline()` 設計的相當好，當前主機若讀不到 `'\n'`，則會想辦法去抓完一整行，同時不會讓碎片尾端在另外一台主機成為新的一筆資料。
 
 接著，萬一輸入格式是以空行為區隔怎麼辦？
+
+### Reference ###
+
+* [Hadoop : WordCount with Custom Record Reader of TextInputFormat](http://bigdatacircus.com/2012/08/01/wordcount-with-custom-record-reader-of-textinputformat/)
+
+* [Hadoop: RecordReader and FileInputFormat](https://hadoopi.wordpress.com/2013/05/27/understand-recordreader-inputsplit/)
