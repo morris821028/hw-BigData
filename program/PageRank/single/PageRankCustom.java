@@ -12,9 +12,6 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.conf.*;
 import org.apache.hadoop.io.*;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.OutputCollector;
-import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
@@ -32,19 +29,17 @@ public class PageRankCustom {
 	 * @author morris
 	 * 
 	 */
-	public static class PageRankMapper extends Mapper<Object, Text, Text, Text>
-			implements
-			org.apache.hadoop.mapred.Mapper<Object, Text, Text, Text> {
+	public static class PageRankMapper extends Mapper<Object, Text, Text, Text> {
 
 		public static String getDomainName(String url)
 				throws MalformedURLException {
-			try {
-				URL uri = new URL(url);
-				String domain = uri.getHost();
-				return domain.startsWith("www.") ? domain.substring(4) : domain;
-			} catch (Exception e) {
-				return "";
-			}
+            try {
+                URL uri = new URL(url);
+                String domain = uri.getHost();
+                return domain.startsWith("www.") ? domain.substring(4) : domain;
+            } catch(Exception e) {
+                return "";
+            }
 		}
 
 		public void map(Object key, Text value, Context context)
@@ -66,57 +61,9 @@ public class PageRankCustom {
 						String url = "";
 						for (int q = p + 1; q < html.length() && html.charAt(q) != html.charAt(p); pos = q++)
 							url = url.concat(String.valueOf(html.charAt(q)));
-						if (getDomainName(url).trim().length() > 0)
-							context.write(new Text(getDomainName(site)),
-									new Text(getDomainName(url)));
-					} else {
-						break;
-					}
-				}
-			}
-		}
-
-		@Override
-		public void configure(JobConf arg0) {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		public void close() throws IOException {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		public void map(Object key, Text value,
-				OutputCollector<Text, Text> context, Reporter arg3)
-				throws IOException {
-			StringTokenizer tokenizer = new StringTokenizer(value.toString());
-
-			if (!tokenizer.hasMoreTokens())
-				return;
-
-			String site = tokenizer.nextToken();
-
-			context.collect(new Text(getDomainName(site)), new Text("1"));
-
-			while (tokenizer.hasMoreTokens()) {
-				String html = tokenizer.nextToken();
-				for (int pos = 0; pos < html.length(); pos++) {
-					if (html.indexOf("href=", pos) >= 0) {
-						int p = html.indexOf("href=") + "href=".length();
-						String url = "";
-						for (int q = p + 1; q < html.length() && html.charAt(q) != html.charAt(p); pos = q++)
-							url = url.concat(String.valueOf(html.charAt(q)));
-						try {
-							url = getDomainName(url);
-							if (url.length() > 0)
-								context.collect(new Text(getDomainName(site)),
-										new Text(url));
-						} catch (Exception e) {
-
-						}
+                        if (getDomainName(url).trim().length() > 0)
+                            context.write(new Text(getDomainName(site)), new Text(
+								getDomainName(url)));
 					} else {
 						break;
 					}
@@ -126,8 +73,7 @@ public class PageRankCustom {
 
 	}
 
-	public static class PageRankReducer extends Reducer<Text, Text, Text, Text>
-			implements org.apache.hadoop.mapred.Reducer<Text, Text, Text, Text> {
+	public static class PageRankReducer extends Reducer<Text, Text, Text, Text> {
 		public static Double beta = 0.85;
 
 		public void reduce(Text key, Iterable<Text> values, Context context)
@@ -151,41 +97,6 @@ public class PageRankCustom {
 			context.write(key, new Text(t));
 		}
 
-		@Override
-		public void configure(JobConf arg0) {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		public void close() throws IOException {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		public void reduce(Text key, Iterator<Text> values,
-				OutputCollector<Text, Text> context, Reporter arg3)
-				throws IOException {
-			Set<String> S = new HashSet<String>();
-			StringBuilder sb = new StringBuilder();
-			double pr = 0;
-			while (values.hasNext()) {
-				Text val = values.next();
-				try {
-					pr = Double.valueOf(val.toString());
-				} catch (Exception e) {
-					if (!S.contains(val.toString())) {
-						sb = sb.append(" " + val.toString());
-						S.add(val.toString());
-					}
-				}
-			}
-
-			String t = String.valueOf(pr) + sb.toString();
-
-			context.collect(key, new Text(t));
-		}
 	}
 
 	public static void computePageRank(String inputPath, String outputPath,
@@ -198,9 +109,8 @@ public class PageRankCustom {
 		Job job = new Job(conf, "Page Rank Custom" + itId);
 
 		job.setJarByClass(PageRank.class);
-
-		job.setMapOutputKeyClass(Text.class);
-		job.setMapOutputValueClass(Text.class);
+        job.setMapOutputKeyClass(Text.class);
+        job.setMapOutputValueClass(Text.class);
 		job.setOutputKeyClass(Text.class);
 		job.setOutputValueClass(Text.class);
 

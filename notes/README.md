@@ -113,3 +113,10 @@ $ jar -cvf PageRank.jar -C class ./
 ```
 $ hadoop jar PageRank.jar main.PageRank input output
 ```
+
+```
+$ javac -classpath /opt/hadoop/lib/commons-cli-1.2.jar:/opt/hadoop/lib/hadoop-core-0.20.2+320.jar  -d class *.java -Xlint
+$ jar -cvf PageRankCustom.jar -C class ./
+$ jar PageRankCustom.jar main.PageRankCustom /user/data/htm100.txt output
+$ $ jar PageRankCustom.jar main.PageRank linksGraph output
+```

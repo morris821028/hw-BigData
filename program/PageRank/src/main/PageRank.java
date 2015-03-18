@@ -151,8 +151,11 @@ public class PageRank {
 		Job job = new Job(conf, "Page Rank " + itId);
 
 		job.setJarByClass(PageRank.class);
+		
+		job.setMapOutputKeyClass(Text.class);
+		job.setMapOutputValueClass(Text.class);
 		job.setOutputKeyClass(Text.class);
-		job.setOutputValueClass(IntWritable.class);
+		job.setOutputValueClass(Text.class);
 
 		job.setMapperClass(PageRankMapper.class);
 		job.setReducerClass(PageRankReducer.class);
@@ -171,7 +174,7 @@ public class PageRank {
 			System.err.println("Usage: <Input_path> <Output_path>");
 			return;
 		}
-		final int ITLIMIT = 100;
+		final int ITLIMIT = 20;
 		String input = args[0];
 		String output = args[1];
 		for (int it = 0; it < ITLIMIT; it++) {

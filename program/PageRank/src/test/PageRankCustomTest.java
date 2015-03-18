@@ -178,10 +178,10 @@ public class PageRankCustomTest {
 
 		int counter = 0;
 		while (reader.nextKeyValue()) {
-			// System.out.printf("key %s\nvalue %s\n", reader.getCurrentKey(),
-			// reader.getCurrentValue());
+			driver.withInput(new LongWritable(reader.getCurrentKey().get()), new Text(reader.getCurrentValue().toString()));
 			counter++;
 		}
+		driver.runTest();
 		assertEquals(101, counter);
 	}
 
@@ -195,7 +195,7 @@ public class PageRankCustomTest {
 		File testFile = new File(testFilePath);
 		Path path = new Path(testFile.toURI().toString());
 
-		FileSplit split = new FileSplit(path, 0, testFile.length() / 100, null);
+		FileSplit split = new FileSplit(path, 0, testFile.length(), null);
 
 		BlockInputFormat inputFormat = ReflectionUtils.newInstance(
 				BlockInputFormat.class, conf);

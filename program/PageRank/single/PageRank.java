@@ -1,5 +1,7 @@
 package main;
 
+import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
 import java.util.*;
 
@@ -19,8 +21,7 @@ public class PageRank {
 	}
 
 	/**
-	 * Mapper<Input Key, Input Value, Output Key, Output Value> read like ``` A
-	 * 0.7 B C B 0.5 A D ```
+	 * Mapper<Input Key, Input Value, Output Key, Output Value> 
 	 * 
 	 * @author morris
 	 * 
@@ -30,17 +31,16 @@ public class PageRank {
 		public void map(Object key, Text value, Context context)
 				throws IOException, InterruptedException {
 			StringTokenizer tokenizer = new StringTokenizer(value.toString());
-			if (!tokenizer.hasMoreTokens())
-				return ;
-			String site, from = tokenizer.nextToken();
+			String site = tokenizer.nextToken();
 			double rankValue = Double.parseDouble(tokenizer.nextToken());
 			double linkCount = tokenizer.countTokens();
+			Text from = new Text(site);
 			Text contribute = new Text(String.valueOf(rankValue / linkCount));
 
 			while (tokenizer.hasMoreTokens()) {
 				site = tokenizer.nextToken();
-				context.write(new Text(from), new Text(site));
-				context.write(new Text(site), new Text(String.valueOf(rankValue / linkCount)));
+				context.write(from, new Text(site));
+				context.write(new Text(site), contribute);
 			}
 		}
 
@@ -51,16 +51,14 @@ public class PageRank {
 
 		public void reduce(Text key, Iterable<Text> values, Context context)
 				throws IOException, InterruptedException {
-			// StringBuilder sb = new StringBuilder();
-			String sb = new String();
+			StringBuilder sb = new StringBuilder();
 			double p = 0;
 			for (Text val : values) {
 				try {
 					double contri = Double.valueOf(val.toString());
 					p += contri;
 				} catch (Exception e) {
-					// sb.append(val.toString() + " ");
-					sb = sb.concat(val.toString() + " ");
+					sb = sb.append(val.toString() + " ");
 				}
 			}
 
@@ -71,6 +69,7 @@ public class PageRank {
 					(long) (p * 10000));
 			context.write(key, new Text(t));
 		}
+
 	}
 
 	public static void computePageRank(String inputPath, String outputPath,
@@ -83,11 +82,10 @@ public class PageRank {
 		Job job = new Job(conf, "Page Rank " + itId);
 
 		job.setJarByClass(PageRank.class);
-
-		job.setOutputKeyClass(Text.class);
-		job.setOutputValueClass(Text.class);
-		job.setMapOutputKeyClass(Text.class);
-		job.setMapOutputValueClass(org.apache.hadoop.io.Text.class);
+        job.setMapOutputKeyClass(Text.class);
+        job.setMapOutputValueClass(Text.class);
+        job.setOutputKeyClass(Text.class);
+        job.setOutputValueClass(Text.class);
 
 		job.setMapperClass(PageRankMapper.class);
 		job.setReducerClass(PageRankReducer.class);
@@ -106,12 +104,11 @@ public class PageRank {
 			System.err.println("Usage: <Input_path> <Output_path>");
 			return;
 		}
-		final int ITLIMIT = 10;
+		final int ITLIMIT = 20;
 		String input = args[0];
 		String output = args[1];
 		for (int it = 0; it < ITLIMIT; it++) {
 			if (it == 0) {
-				input = args[0];
 				output = "pagerank_output2/";
 			} else if (it % 2 == 0) {
 				input = "pagerank_output1/p*";
