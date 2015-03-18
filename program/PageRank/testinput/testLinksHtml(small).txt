@@ -1,0 +1,34 @@
+http://A
+<html>
+a
+b
+<a href="http://B">
+<a href="http://C">
+<a href="http://D">
+<a href="//">
+<html>
+http://A
+
+http://B
+<html>
+p
+q
+r
+<a href="http://C">
+<a href="http://D">
+<html>
+http://B
+
+http://C
+<html>
+x
+<a href="http://D">
+<html>
+http://C
+
+http://D
+<html>
+y
+<a href="http://B">
+<html>
+http://D
