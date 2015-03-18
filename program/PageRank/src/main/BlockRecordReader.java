@@ -15,7 +15,7 @@ import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.util.LineReader;
 
 public class BlockRecordReader extends RecordReader<LongWritable, Text> {
-	private final int NLINESTOPROCESS = 3;
+	private final int NLINESTOPROCESS = 9999;
 	private LineReader in;
 	private LongWritable key;
 	private Text value = new Text();
@@ -80,8 +80,49 @@ public class BlockRecordReader extends RecordReader<LongWritable, Text> {
 
 	@Override
 	public boolean nextKeyValue() throws IOException, InterruptedException {
-		// TODO Auto-generated method stub
-		return false;
+		if (key == null) {
+			key = new LongWritable();
+		}
+		key.set(pos);
+		if (value == null) {
+			value = new Text();
+		}
+		
+		value.clear();
+		final Text endline = new Text("\n");
+		int newSize = 0;
+		String begin;
+		Text v = new Text();
+		while (true) {
+			newSize = in.readLine(v, maxLineLength, Math.max(
+					(int) Math.min(Integer.MAX_VALUE, end - pos), maxLineLength));
+			begin = v.toString();
+			if (newSize == 0) {
+				key = null;
+				value = null;
+				return false;
+			}
+			pos += newSize;
+			if (begin.trim().length() > 0) {
+				value.append(v.getBytes(), 0, v.getLength());
+				value.append(endline.getBytes(), 0, endline.getLength());
+				break;
+			}
+		}
+
+		while (true) {
+			newSize = in.readLine(v, maxLineLength,
+					Math.max((int) Math.min(Integer.MAX_VALUE, end - pos),
+							maxLineLength));
+			value.append(v.getBytes(), 0, v.getLength());
+			value.append(endline.getBytes(), 0, endline.getLength());
+			if (newSize == 0)
+				break;
+			pos += newSize;
+			if (begin.equals(v.toString()))
+				break;
+		}
+		return true;
 	}
 
 }

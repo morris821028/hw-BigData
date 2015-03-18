@@ -2,23 +2,45 @@ package test;
 
 import static org.junit.Assert.*;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import main.BlockInputFormat;
+import main.BlockRecordReader;
 import main.PageRank;
 
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.TaskAttemptID;
 import org.apache.hadoop.mapreduce.Mapper.Context;
+import org.apache.hadoop.mapreduce.TaskAttemptContext;
+import org.apache.hadoop.mapreduce.lib.input.FileSplit;
+import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mrunit.MapDriver;
 import org.apache.hadoop.mrunit.MapReduceDriver;
 import org.apache.hadoop.mrunit.ReduceDriver;
+import org.apache.hadoop.util.ReflectionUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.mapreduce.InputFormat;
+import org.apache.hadoop.mapreduce.InputSplit;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.RecordReader;
+import org.apache.hadoop.mapreduce.TaskAttemptContext;
+import org.apache.hadoop.mapreduce.TaskAttemptID;
+import org.apache.hadoop.mapreduce.lib.input.FileSplit;
+import org.apache.hadoop.util.ReflectionUtils;
+
+import java.io.File;
 
 public class PageRankTest {
 
@@ -88,5 +110,44 @@ public class PageRankTest {
 				.withOutput(new Text("C"), new Text("0.8583333333333333 D"))
 				.withOutput(new Text("D"), new Text("1.708333333333333 B"))
 				.runTest();
+	}
+
+	@Test
+	public void testBlockRecordReader() throws IOException,
+			InterruptedException {
+		BlockRecordReader reader = getBlockRecordReader();
+		int counter = 0;
+		while (reader.nextKeyValue()) {
+			reader.getCurrentKey();
+			reader.getCurrentValue();
+			System.out.printf("key %s\nvalue %s\n", reader.getCurrentKey(),
+					reader.getCurrentValue());
+			counter++;
+		}
+		System.out.printf("WTF %d\n", counter);
+	}
+
+	private static BlockRecordReader getBlockRecordReader() throws IOException,
+			InterruptedException {
+		Configuration conf = new Configuration();
+		conf.set("fs.default.name", "file:///");
+
+		String testFilePath = "testinput/testHtml(small).txt";
+
+		File testFile = new File(testFilePath);
+		System.out.println(testFile.toURI().toString());
+		Path path = new Path(testFile.toURI().toString());
+		System.out.println(testFile.length());
+		FileSplit split = new FileSplit(path, 0, testFile.length() / 100, null);
+
+		BlockInputFormat inputFormat = ReflectionUtils.newInstance(
+				BlockInputFormat.class, conf);
+		TaskAttemptContext context = new TaskAttemptContext(conf,
+				new TaskAttemptID());
+		BlockRecordReader reader = (BlockRecordReader) inputFormat
+				.createRecordReader(split, context);
+
+		reader.initialize(split, context);
+		return reader;
 	}
 }
