@@ -166,4 +166,46 @@ public class PageRankCustomTest {
 		return reader;
 	}
 
+	@Test
+	public void testLargeBlockRecordReader() throws IOException,
+			InterruptedException {
+		mapper = new PageRankCustom.PageRankMapper();
+		reducer = new PageRankCustom.PageRankReducer();
+		driver = new MapReduceDriver<Object, Text, Text, Text, Text, Text>(
+				mapper, reducer);
+
+		BlockRecordReader reader = getLargeBlockRecordReader();
+
+		int counter = 0;
+		while (reader.nextKeyValue()) {
+			// System.out.printf("key %s\nvalue %s\n", reader.getCurrentKey(),
+			// reader.getCurrentValue());
+			counter++;
+		}
+		assertEquals(101, counter);
+	}
+
+	private static BlockRecordReader getLargeBlockRecordReader()
+			throws IOException, InterruptedException {
+		Configuration conf = new Configuration();
+		conf.set("fs.default.name", "file:///");
+
+		String testFilePath = "testinput/testHtml.txt";
+
+		File testFile = new File(testFilePath);
+		Path path = new Path(testFile.toURI().toString());
+
+		FileSplit split = new FileSplit(path, 0, testFile.length() / 100, null);
+
+		BlockInputFormat inputFormat = ReflectionUtils.newInstance(
+				BlockInputFormat.class, conf);
+		TaskAttemptContext context = new TaskAttemptContext(conf,
+				new TaskAttemptID());
+		BlockRecordReader reader = (BlockRecordReader) inputFormat
+				.createRecordReader(split, context);
+
+		reader.initialize(split, context);
+		return reader;
+	}
+
 }
