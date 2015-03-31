@@ -42,7 +42,7 @@ class DataParser:
 		self.fout = open(outFilename, "w")
 
 	def storeGraph(self, site, html):
-		parser = MyHTMLParser()  
+		parser = MyHTMLParser()
 		parser.feed(html)  
 		site = getDomainFromUrl(site)
 		elem = site + ' 1'
@@ -67,6 +67,7 @@ class DataParser:
 				startSiteUrl = line
 			elif startSite == True:
 				if line == startSiteUrl and isUrl(line):
+					print 'store :' + startSiteUrl
 					self.storeGraph(startSiteUrl, html)
 					html = ''
 					startSite = False

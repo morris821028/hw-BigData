@@ -81,8 +81,8 @@ public class PageRankTest {
 				.withReducer(reducer);
 		List<Text> values = new ArrayList<Text>();
 		values.add(new Text("A"));
-		values.add(new Text("1"));
-		values.add(new Text("C"));
+		values.add(new Text("1")); // ? rank B => edge (B, ?.rank / ?.degree)
+		values.add(new Text("C")); // B rank A C => edge (B, A), (B, C)
 		values.add(new Text("4")); // 5 * 0.85 + 0.15 = 4.4
 		reduceDriver.withInput(new Text("B"), values)
 				.withOutput(new Text("B"), new Text("4.4 A C")).runTest();

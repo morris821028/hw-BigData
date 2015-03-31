@@ -14,7 +14,7 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.util.LineReader;
 
-public class BlockRecordReader extends RecordReader<LongWritable, Text> {
+public class FailBlockRecordReader extends RecordReader<LongWritable, Text> {
 	private final int NLINESTOPROCESS = 9999;
 	private LineReader in;
 	private LongWritable key;
@@ -109,19 +109,21 @@ public class BlockRecordReader extends RecordReader<LongWritable, Text> {
 				break;
 			}
 		}
-		
+
+//		while (pos < end) {
 		while (true) {
 			newSize = in.readLine(v, maxLineLength,
 					Math.max((int) Math.min(Integer.MAX_VALUE, end - pos),
 							maxLineLength));
 			value.append(v.getBytes(), 0, v.getLength());
 			value.append(endline.getBytes(), 0, endline.getLength());
-			pos += newSize;
-			if (newSize == 0 || v.toString().trim().length() == 0)
+			if (newSize == 0)
 				break;
-			if (begin.equals(v.toString().trim()))
+			pos += newSize;
+			if (begin.equals(v.toString()))
 				break;
 		}
+		System.out.printf("<<<fail block value begin>>>\n%s<<<fail block value end>>>\n\n", value.toString());
 		return true;
 	}
 
