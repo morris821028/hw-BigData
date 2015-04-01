@@ -19,9 +19,9 @@ public class BlockRecordReader extends RecordReader<LongWritable, Text> {
 	private LineReader in;
 	private LongWritable key;
 	private Text value = new Text();
-	private long start = 0;
-	private long end = 0;
-	private long pos = 0;
+	public long start = 0;
+	public long end = 0;
+	public long pos = 0;
 	private int maxLineLength;
 
 	@Override

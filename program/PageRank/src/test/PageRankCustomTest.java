@@ -153,7 +153,7 @@ public class PageRankCustomTest {
 		File testFile = new File(testFilePath);
 		Path path = new Path(testFile.toURI().toString());
 
-		FileSplit split = new FileSplit(path, 0, testFile.length() / 100, null);
+		FileSplit split = new FileSplit(path, 0, testFile.length(), null);
 
 		BlockInputFormat inputFormat = ReflectionUtils.newInstance(
 				BlockInputFormat.class, conf);
@@ -208,25 +208,6 @@ public class PageRankCustomTest {
 		return reader;
 	}
 	
-	@Test
-	public void testLargeBlockRecordReaderDuplicate() throws IOException,
-			InterruptedException {
-		mapper = new PageRankCustom.PageRankMapper();
-		reducer = new PageRankCustom.PageRankReducer();
-		driver = new MapReduceDriver<Object, Text, Text, Text, Text, Text>(
-				mapper, reducer);
-
-		BlockRecordReader reader = getLargeBlockRecordReader("duplicate.txt");
-
-		int counter = 0;
-		while (reader.nextKeyValue()) {
-			driver.withInput(new LongWritable(reader.getCurrentKey().get()), new Text(reader.getCurrentValue().toString()));
-			counter++;
-		}
-		driver.runTest();
-		assertEquals(101, counter);
-	}
-	
 	private static BlockRecordReader getLargeBlockRecordReader(String fileName)
 			throws IOException, InterruptedException {
 		Configuration conf = new Configuration();
@@ -237,7 +218,7 @@ public class PageRankCustomTest {
 		File testFile = new File(testFilePath);
 		Path path = new Path(testFile.toURI().toString());
 
-		FileSplit split = new FileSplit(path, 0, 64000, null);
+		FileSplit split = new FileSplit(path, 0, testFile.length(), null);
 
 		BlockInputFormat inputFormat = ReflectionUtils.newInstance(
 				BlockInputFormat.class, conf);

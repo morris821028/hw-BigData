@@ -19,11 +19,11 @@ public class FailBlockRecordReader extends RecordReader<LongWritable, Text> {
 	private LineReader in;
 	private LongWritable key;
 	private Text value = new Text();
-	private long start = 0;
-	private long end = 0;
-	private long pos = 0;
-	private int maxLineLength;
-
+	public long start = 0;
+	public long end = 0;
+	public long pos = 0;
+	public int maxLineLength;
+	FSDataInputStream filein;
 	@Override
 	public void close() throws IOException {
 		if (in != null) {
@@ -62,8 +62,10 @@ public class FailBlockRecordReader extends RecordReader<LongWritable, Text> {
 		FileSystem fs = file.getFileSystem(conf);
 		start = split.getStart();
 		end = start + split.getLength();
+		System.out.printf("RecordReader before start %d end %d\n", start, end);
+		
 		boolean skipFirstLine = false;
-		FSDataInputStream filein = fs.open(split.getPath());
+		filein = fs.open(split.getPath());
 
 		if (start != 0) {
 			skipFirstLine = true;
@@ -71,11 +73,13 @@ public class FailBlockRecordReader extends RecordReader<LongWritable, Text> {
 			filein.seek(start);
 		}
 		in = new LineReader(filein, conf);
+		System.out.printf("skipFirstline %b\n", skipFirstLine);
 		if (skipFirstLine) {
 			start += in.readLine(new Text(), 0,
 					(int) Math.min((long) Integer.MAX_VALUE, end - start));
 		}
 		this.pos = start;
+		System.out.printf("RecordReader after pos %d start %d end %d\n", pos, start, end);
 	}
 
 	@Override
@@ -88,6 +92,10 @@ public class FailBlockRecordReader extends RecordReader<LongWritable, Text> {
 			value = new Text();
 		}
 		
+		if (pos > end)
+			return false;
+		
+		System.out.printf("pos %d %d\n", pos, filein.getPos());
 		value.clear();
 		final Text endline = new Text("\n");
 		int newSize = 0;
@@ -109,9 +117,9 @@ public class FailBlockRecordReader extends RecordReader<LongWritable, Text> {
 				break;
 			}
 		}
-
-//		while (pos < end) {
-		while (true) {
+		System.out.printf(">>>>>>>> pos %d end %d, begin header %s\n", pos, end, begin);
+		while (true) { 
+//		while (true) {
 			newSize = in.readLine(v, maxLineLength,
 					Math.max((int) Math.min(Integer.MAX_VALUE, end - pos),
 							maxLineLength));
@@ -123,7 +131,6 @@ public class FailBlockRecordReader extends RecordReader<LongWritable, Text> {
 			if (begin.equals(v.toString()))
 				break;
 		}
-		System.out.printf("<<<fail block value begin>>>\n%s<<<fail block value end>>>\n\n", value.toString());
 		return true;
 	}
 
