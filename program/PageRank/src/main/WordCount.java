@@ -41,10 +41,10 @@ public class WordCount {
 	}
 
 	public static void main(String[] args) throws Exception {
-		if (args.length < 2) {
-			System.err.println("Usage: <Input_path> <Output_path>");
-			return;
-		}
+//		if (args.length < 2) {
+//			System.err.println("Usage: <Input_path> <Output_path>");
+//			return;
+//		}
 		Configuration conf = new Configuration();
 
 		Job job = new Job(conf, "wordcount");
@@ -59,8 +59,8 @@ public class WordCount {
 		job.setInputFormatClass(TextInputFormat.class);
 		job.setOutputFormatClass(TextOutputFormat.class);
 
-		FileInputFormat.addInputPath(job, new Path(args[0]));
-		FileOutputFormat.setOutputPath(job, new Path(args[1]));
+		FileInputFormat.addInputPath(job, new Path("testinput/testHtml.txt"));
+		FileOutputFormat.setOutputPath(job, new Path("output/"));
 
 		job.waitForCompletion(true);
 	}

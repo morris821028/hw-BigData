@@ -57,7 +57,8 @@ public class PageRankCustom {
 				String html = tokenizer.nextToken();
 				for (int pos = 0; pos < html.length(); pos++) {
 					if (html.indexOf("href=", pos) >= 0) {
-						int p = html.indexOf("href=") + "href=".length();
+						int p = html.indexOf("href=", pos) + "href=".length();
+                        pos = p;
 						String url = "";
 						for (int q = p + 1; q < html.length() && html.charAt(q) != html.charAt(p); pos = q++)
 							url = url.concat(String.valueOf(html.charAt(q)));
@@ -106,7 +107,7 @@ public class PageRankCustom {
 
 		fs.delete(new Path(outputPath), true);
 
-		Job job = new Job(conf, "Page Rank Custom" + itId);
+		Job job = new Job(conf, "Page Rank Custom " + itId);
 
 		job.setJarByClass(PageRank.class);
         job.setMapOutputKeyClass(Text.class);

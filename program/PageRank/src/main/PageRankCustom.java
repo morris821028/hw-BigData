@@ -55,15 +55,15 @@ public class PageRankCustom {
 				return;
 
 			String site = tokenizer.nextToken();
-
 			context.write(new Text(getDomainName(site)), new Text("1"));
 
 			while (tokenizer.hasMoreTokens()) {
 				String html = tokenizer.nextToken();
 				for (int pos = 0; pos < html.length(); pos++) {
 					if (html.indexOf("href=", pos) >= 0) {
-						int p = html.indexOf("href=") + "href=".length();
+						int p = html.indexOf("href=", pos) + "href=".length();
 						String url = "";
+						pos = p;
 						for (int q = p + 1; q < html.length() && html.charAt(q) != html.charAt(p); pos = q++)
 							url = url.concat(String.valueOf(html.charAt(q)));
 						if (getDomainName(url).trim().length() > 0)
@@ -92,6 +92,7 @@ public class PageRankCustom {
 		public void map(Object key, Text value,
 				OutputCollector<Text, Text> context, Reporter arg3)
 				throws IOException {
+			System.out.println("WTF");
 			StringTokenizer tokenizer = new StringTokenizer(value.toString());
 
 			if (!tokenizer.hasMoreTokens())
@@ -105,7 +106,7 @@ public class PageRankCustom {
 				String html = tokenizer.nextToken();
 				for (int pos = 0; pos < html.length(); pos++) {
 					if (html.indexOf("href=", pos) >= 0) {
-						int p = html.indexOf("href=") + "href=".length();
+						int p = html.indexOf("href=", pos) + "href=".length();
 						String url = "";
 						for (int q = p + 1; q < html.length() && html.charAt(q) != html.charAt(p); pos = q++)
 							url = url.concat(String.valueOf(html.charAt(q)));
@@ -217,13 +218,14 @@ public class PageRankCustom {
 	}
 
 	public static void main(String[] args) throws Exception {
-		if (args.length < 2) {
-			System.err.println("Usage: <Input_path> <Output_path>");
-			return;
-		}
+//		if (args.length < 2) {
+//			System.err.println("Usage: <Input_path> <Output_path>");
+//			return;
+//		}
 		final int ITLIMIT = 1;
-		String input = args[0];
-		String output = args[1];
+		String input = "";
+		String output = "";
+		input = "testinput/duplicate.txt";
 		for (int it = 0; it < ITLIMIT; it++) {
 			if (it == 0) {
 				output = "pagerank_output2/";

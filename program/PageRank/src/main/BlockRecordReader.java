@@ -1,6 +1,9 @@
 package main;
 
 import java.io.IOException;
+import java.io.PrintStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -60,11 +63,14 @@ public class BlockRecordReader extends RecordReader<LongWritable, Text> {
 		this.maxLineLength = conf.getInt("mapred.linerecordreader.maxlength",
 				Integer.MAX_VALUE);
 		FileSystem fs = file.getFileSystem(conf);
+
 		start = split.getStart();
 		end = start + split.getLength();
-		boolean skipFirstLine = false;
+
 		FSDataInputStream filein = fs.open(split.getPath());
 
+		filein.seek(start);
+		boolean skipFirstLine = false;
 		if (start != 0) {
 			skipFirstLine = true;
 			--start;
@@ -75,7 +81,18 @@ public class BlockRecordReader extends RecordReader<LongWritable, Text> {
 			start += in.readLine(new Text(), 0,
 					(int) Math.min((long) Integer.MAX_VALUE, end - start));
 		}
+		// System.out.printf("start %d end %d\n", start, end);
 		this.pos = start;
+	}
+
+	public static String getDomainName(String url) throws MalformedURLException {
+		try {
+			URL uri = new URL(url);
+			String domain = uri.getHost();
+			return domain.startsWith("www.") ? domain.substring(4) : domain;
+		} catch (Exception e) {
+			return "";
+		}
 	}
 
 	@Override
@@ -87,41 +104,89 @@ public class BlockRecordReader extends RecordReader<LongWritable, Text> {
 		if (value == null) {
 			value = new Text();
 		}
-		
+		if (pos >= end)
+			return false;
+
 		value.clear();
 		final Text endline = new Text("\n");
 		int newSize = 0;
-		String begin;
+		String begin = "error";
 		Text v = new Text();
-		while (true) {
-			newSize = in.readLine(v, maxLineLength, Math.max(
-					(int) Math.min(Integer.MAX_VALUE, end - pos), maxLineLength));
-			begin = v.toString();
-			if (newSize == 0) {
-				key = null;
-				value = null;
-				return false;
+		while (pos < end) {
+			// find <url begin>
+			while (true) {
+				newSize = in.readLine(v, maxLineLength, Math.max(
+						(int) Math.min(Integer.MAX_VALUE, end - pos),
+						maxLineLength));
+				begin = v.toString();
+				pos += newSize;
+				if (newSize == 0) {
+					key = null;
+					value = null;
+					return false;
+				}
+				if (begin.length() > 0 && getDomainName(begin).length() > 0)
+					break;
+				if (pos >= end)
+					return false;
 			}
-			pos += newSize;
-			if (begin.trim().length() > 0) {
+			// find next token after <url begin>
+			while (true) {
+				newSize = in.readLine(v, maxLineLength, Math.max(
+						(int) Math.min(Integer.MAX_VALUE, end - pos),
+						maxLineLength));
+				pos += newSize;
+				if (newSize == 0)
+					return false;
+
+				if (v.toString().trim().length() > 0) {
+					if (getDomainName(v.toString()).length() > 0) {
+						// in next split
+						if (pos - newSize >= end)
+							return false;
+						// replace <url begin>
+						begin = v.toString();
+					} else {
+						// find non null string and with , <!-- [if ie8] --><html>
+						if (v.toString().trim().charAt(0) == '<'
+								&& v.toString().indexOf("html") >= 0)
+							break;
+						if (pos >= end)
+							return false;
+					}
+				}
+			}
+			if (v.toString().trim().charAt(0) == '<') {
+				// System.out.printf("%s\n%s\n", begin, v.toString());
+				value.append(begin.getBytes(), 0, begin.length());
+				value.append(endline.getBytes(), 0, endline.getLength());
 				value.append(v.getBytes(), 0, v.getLength());
 				value.append(endline.getBytes(), 0, endline.getLength());
 				break;
+			} else {
+				value.clear();
 			}
+			if (pos >= end)
+				return false;
 		}
 
-		while (true) {
+		// System.out.printf("%d begin %s\n", pos, begin);
+		while (pos < end) {
 			newSize = in.readLine(v, maxLineLength,
 					Math.max((int) Math.min(Integer.MAX_VALUE, end - pos),
 							maxLineLength));
 			value.append(v.getBytes(), 0, v.getLength());
 			value.append(endline.getBytes(), 0, endline.getLength());
-			if (newSize == 0)
-				break;
 			pos += newSize;
+			if (newSize == 0)
+				return false;
 			if (begin.equals(v.toString()))
 				break;
 		}
+		
+		// System.out.printf("%d end %s\n", pos, begin);
+		if (value.toString().trim().length() == 0)
+			return false;
 		return true;
 	}
 
