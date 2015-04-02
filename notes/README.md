@@ -114,9 +114,22 @@ $ jar -cvf PageRank.jar -C class ./
 $ hadoop jar PageRank.jar main.PageRank input output
 ```
 
+### Simple Compile Flow ##
+
+
 ```
 $ javac -classpath /opt/hadoop/lib/commons-cli-1.2.jar:/opt/hadoop/lib/hadoop-core-0.20.2+320.jar  -d class *.java -Xlint
 $ jar -cvf PageRankCustom.jar -C class ./
-$ jar PageRankCustom.jar main.PageRankCustom /user/data/htm100.txt output
-$ $ jar PageRankCustom.jar main.PageRank linksGraph output
+```
+
+HTML to Adjacency Graph
+
+```
+$ hadoop jar PageRankCustom.jar main.PageRankCustom /user/data/htm100.txt output
+```
+
+Compute PageRank with Adjacency Graph.
+
+```
+$ hadoop jar PageRankCustom.jar main.PageRank linksGraph output
 ```
